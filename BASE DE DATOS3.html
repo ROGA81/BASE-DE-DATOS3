@@ -1,0 +1,37 @@
+// Envío de formulario y obtención de registros
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('pedidoForm');
+  const mensajeExito = document.getElementById('mensajeExito');
+  const listaPedidos = document.getElementById('listaPedidos');
+
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const data = new URLSearchParams(new FormData(form));
+
+    fetch(APP_SCRIPT_URL, { method: 'POST', body: data })
+      .then(() => {
+        mensajeExito.classList.add('visible');
+        form.reset();
+        cargarPedidos();
+        setTimeout(() => mensajeExito.classList.remove('visible'), 5000);
+      })
+      .catch(err => console.error(err));
+  });
+
+  function cargarPedidos() {
+    fetch(`${APP_SCRIPT_URL}?action=get`)
+      .then(res => res.json())
+      .then(datos => {
+        listaPedidos.innerHTML = '';
+        datos.forEach(row => {
+          const div = document.createElement('div');
+          div.textContent = `${row['Timestamp']} - ${row['Nombre del cliente']} ` +
+                            `(${row['Sabor del jugo']}, ${row['Tamaño']})`;
+          listaPedidos.appendChild(div);
+        });
+      })
+      .catch(() => listaPedidos.textContent = 'Error al cargar pedidos.');
+  }
+
+  cargarPedidos();
+});
